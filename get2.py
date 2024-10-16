@@ -37,3 +37,37 @@ auth_data = {
 with httpx.Client() as client:
     response = client.post(auth_url, json=auth_data)
     print(response.json())
+
+
+
+import requests
+import ssl
+from urllib3.poolmanager import PoolManager
+from requests.adapters import HTTPAdapter
+
+class TLSAdapter(HTTPAdapter):
+    """Transport adapter that forces TLSv1.2"""
+    def init_poolmanager(self, *args, **kwargs):
+        context = ssl.create_default_context()
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        kwargs['ssl_context'] = context
+        return super(TLSAdapter, self).init_poolmanager(*args, **kwargs)
+
+# Create a session with the adapter
+session = requests.Session()
+session.mount('https://', TLSAdapter())
+
+auth_url = 'https://YOUR_SUBDOMAIN.auth.marketingcloudapis.com/v2/token'
+auth_data = {
+    'grant_type': 'client_credentials',
+    'client_id': 'YOUR_CLIENT_ID',
+    'client_secret': 'YOUR_CLIENT_SECRET',
+    'account_id': 'YOUR_ACCOUNT_ID'
+}
+
+try:
+    response = session.post(auth_url, json=auth_data, timeout=30)
+    response.raise_for_status()
+    print(response.json())
+except requests.exceptions.RequestException as e:
+    print(f"Error: {e}")
