@@ -1,0 +1,11 @@
+SELECT 
+    s.MobileNumber,
+    s.SubscriberKey,
+    s.MessageText,
+    t.EventDate AS ClickDate,
+    t.URL
+FROM _SMSMessageTracking s
+JOIN _Click t
+ON s.SubscriberKey = t.SubscriberKey
+WHERE t.URL IS NOT NULL
+AND t.EventDate >= DATEADD(day, -30, GETDATE())  -- Last 30 days
