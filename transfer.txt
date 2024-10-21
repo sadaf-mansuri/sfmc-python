@@ -40,3 +40,13 @@ ______
 debug
 
 OUTPUTLINE(CONCAT("Decrypted String: ", @decryptedString))
+
+%%[
+  SET @encryptedValue = "ENCRYPTED_STRING_HERE"  /* Replace with your encrypted string */
+  SET @decryptedValue = CacheUtil.DecryptData(@encryptedValue)
+
+  IF EMPTY(@decryptedValue) THEN
+    SET @decryptedValue = "Error decrypting data"
+  ENDIF
+]%%
+Decrypted Value: %%=v(@decryptedValue)=%%
