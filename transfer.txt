@@ -50,3 +50,10 @@ OUTPUTLINE(CONCAT("Decrypted String: ", @decryptedString))
   ENDIF
 ]%%
 Decrypted Value: %%=v(@decryptedValue)=%%
+
+%%[
+   SET @encoded = Base64Encode('This is a test')
+   SET @decoded = Base64Decode(@encoded)
+]%%
+Encoded Value: %%=v(@encoded)=%%  
+Decoded Value: %%=v(@decoded)=%%
