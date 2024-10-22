@@ -9,3 +9,51 @@ JOIN _Click t
 ON s.SubscriberKey = t.SubscriberKey
 WHERE t.URL IS NOT NULL
 AND t.EventDate >= DATEADD(day, -30, GETDATE())  -- Last 30 days
+
+
+___----
+%%[
+SET @encryptedString = "ENCRYPTED_STRING_HERE"  /* Replace with your encrypted string */
+SET @decryptedString = CacheUtil.DecryptData(@encryptedString)
+
+IF EMPTY(@decryptedString) THEN
+  SET @decryptedString = "Error decrypting data"
+ENDIF
+]%%
+Decrypted Value: %%=v(@decryptedString)=%%
+
+
+______
+%%[
+   SET @encryptedCustomerID = AttributeValue("encryptedCustomerID")  /* Fetch encrypted string from a data extension or as a parameter */
+   SET @decryptedCustomerID = CacheUtil.DecryptData(@encryptedCustomerID)
+
+   IF NOT EMPTY(@decryptedCustomerID) THEN
+     SET @personalizedMessage = CONCAT("Hello, Customer ID ", @decryptedCustomerID)
+   ELSE
+     SET @personalizedMessage = "Error: Could not decrypt customer ID."
+   ENDIF
+]%%
+%%=v(@personalizedMessage)=%%
+
+
+debug
+
+OUTPUTLINE(CONCAT("Decrypted String: ", @decryptedString))
+
+%%[
+  SET @encryptedValue = "ENCRYPTED_STRING_HERE"  /* Replace with your encrypted string */
+  SET @decryptedValue = CacheUtil.DecryptData(@encryptedValue)
+
+  IF EMPTY(@decryptedValue) THEN
+    SET @decryptedValue = "Error decrypting data"
+  ENDIF
+]%%
+Decrypted Value: %%=v(@decryptedValue)=%%
+
+%%[
+   SET @encoded = Base64Encode('This is a test')
+   SET @decoded = Base64Decode(@encoded)
+]%%
+Encoded Value: %%=v(@encoded)=%%  
+Decoded Value: %%=v(@decoded)=%%
