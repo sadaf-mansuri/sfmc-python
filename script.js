@@ -1,4 +1,4 @@
-<script runat="server">
+i<script runat="server">
     Platform.Load("Core", "1.1");
     
     var deName = "TargetDataExtension";  // Replace with your Target Data Extension name
@@ -31,5 +31,38 @@
         de.Rows.Update(updateObject, ["Id"], [row.Id]);
 
         Write("Decrypted value for record " + row.Id + ": " + decryptedValue + "<br>");
+    }
+</script>
+
+
+<script runat="server">
+    Platform.Load("Core", "1.1");
+
+    function logErrorToDE(errorMessage) {
+        try {
+            var logDE = DataExtension.Init("ScriptLogDE");
+            var logEntry = {
+                "LogMessage": errorMessage,
+                "LogTimestamp": Platform.Function.Now(),  // Current timestamp
+                "LogLevel": "Error"
+            };
+            logDE.Rows.Add(logEntry);  // Add the log entry to the Data Extension
+        } catch (logError) {
+            Write("Failed to write to log Data Extension: " + logError.message + "<br>");
+        }
+    }
+
+    try {
+        // Your script logic here
+        Write("Processing records...<br>");
+        // Example of adding additional logs
+        logErrorToDE("Starting record processing...");
+
+        // Simulating a process that could cause an error
+        throw new Error("Sample error for testing");
+
+    } catch (e) {
+        Write("An error occurred: " + e.message + "<br>");
+        logErrorToDE(e.message);  // Log the error message to Data Extension
     }
 </script>
