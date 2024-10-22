@@ -1,0 +1,29 @@
+<script runat="server">
+   Platform.Load("Core", "1");
+
+   // Define the base64-encoded encrypted data (from Salesforce CRM)
+   var encData = "base64-encoded-encrypted-string";  // Replace with your actual encrypted string
+   var key = "your-key";  // Replace with your actual encryption key
+
+   // Decode the base64-encoded encrypted string
+   var encDataBlob = Platform.Function.Base64Decode(encData);
+
+   // Convert the key to a Blob
+   var keyBlob = Platform.Function.Blob.FromString(key);
+
+   // Decrypt the data using AES128 with managed IV
+   var decryptedBlob = Platform.Function.Crypto.DecryptWithManagedIV("AES128", keyBlob, encDataBlob);
+
+   // Convert the decrypted Blob to a string
+   var decryptedString = decryptedBlob.toString();
+
+   // Pass the decrypted data to AMPscript
+   Variable.SetValue("@decryptedValue", decryptedString);
+</script>
+
+
+
+%%[
+    SET @decryptedValue = v(@decryptedValue)
+]%%
+Decrypted Value: %%=v(@decryptedValue)=%%
