@@ -1,13 +1,11 @@
-// AMPscript Implementation
 %%[
-/* Function to convert hex string to binary */
-SET @hexToBin = ""
-SET @encryptedData = AttributeValue("EncryptedField") /* Get from DE */
+/* AMPScript Implementation */
+SET @encryptedValue = AttributeValue("EncryptedField") /* e.g. "rMVOk81vL5iFse+MwnNF8n67H1W1KehqM4qGYOTZejA=" */
 SET @key = "YOUR_ENCRYPTION_KEY_HERE"
 
-/* Extract first 16 bytes (32 characters in hex) for IV */
-SET @iv = Substring(@encryptedData, 1, 32)
-SET @actualData = Substring(@encryptedData, 33)
+/* Extract first 16 bytes for IV */
+SET @iv = Base64Decode(Substring(@encryptedValue, 1, 24)) /* First 16 bytes in Base64 is roughly 24 characters */
+SET @actualData = Substring(@encryptedValue, 25)
 
 /* Decrypt using IV and Key */
 SET @decryptedValue = DecryptSymmetric(
@@ -16,7 +14,7 @@ SET @decryptedValue = DecryptSymmetric(
     @key,
     "CBC",
     @iv,
-    "hex"
+    "base64"
 )
 ]%%
 
@@ -26,30 +24,21 @@ Decrypted Value: %%=v(@decryptedValue)=%%
 <script runat="server">
 Platform.Load("core", "1.1.1");
 
-function hexToBytes(hex) {
-    var bytes = [];
-    for(var i = 0; i < hex.length; i += 2) {
-        bytes.push(parseInt(hex.substr(i, 2), 16));
-    }
-    return bytes;
-}
-
-function decryptData(encryptedData, key) {
+function decryptData(encryptedBase64, key) {
     try {
-        // Extract IV (first 16 bytes / 32 hex chars)
-        var iv = encryptedData.substring(0, 32);
-        var actualData = encryptedData.substring(32);
+        // Convert key to bytes if it's in string format
+        var keyBytes = Platform.Function.Base64Decode(key);
         
-        // Convert hex strings to byte arrays
-        var ivBytes = hexToBytes(iv);
-        var keyBytes = hexToBytes(key);
-        var dataBytes = hexToBytes(actualData);
+        // Extract IV (first 16 bytes)
+        var encryptedBytes = Platform.Function.Base64Decode(encryptedBase64);
+        var iv = encryptedBytes.slice(0, 16);
+        var actualData = encryptedBytes.slice(16);
         
-        // Create crypto objects
-        var decipher = Crypto.createDecipher("aes-256-cbc", keyBytes, ivBytes);
+        // Create decipher
+        var decipher = Crypto.createDecipher("aes-256-cbc", keyBytes, iv);
         
         // Decrypt
-        var decrypted = decipher.update(dataBytes);
+        var decrypted = decipher.update(actualData);
         decrypted = decrypted.concat(decipher.final());
         
         // Convert to string
@@ -60,7 +49,7 @@ function decryptData(encryptedData, key) {
     }
 }
 
-// Usage Example
+// Example usage
 var row = Platform.Function.LookupRows(
     "YourDataExtensionName",
     "PrimaryKey",
@@ -68,8 +57,8 @@ var row = Platform.Function.LookupRows(
 );
 
 if(row && row.length > 0) {
-    var encryptedValue = row[0]["EncryptedColumn"];
-    var key = "YOUR_ENCRYPTION_KEY_HERE";
+    var encryptedValue = row[0]["EncryptedColumn"]; // Value like "rMVOk81vL5iFse+MwnNF8n67H1W1KehqM4qGYOTZejA="
+    var key = "YOUR_BASE64_ENCRYPTION_KEY";
     
     var decryptedValue = decryptData(encryptedValue, key);
     Write("Decrypted Value: " + decryptedValue);
