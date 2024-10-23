@@ -80,3 +80,34 @@ var decryptedValue = decipher.update(encryptedValue, 'hex', 'utf8');
 decryptedValue += decipher.final('utf8');
 
 Write("Decrypted Value: " + decryptedValue);
+
+
+<script runat="server">
+    Platform.Load("Core", "1");
+
+    var key = "your-secret-key";  // Your decryption key
+    var base64EncodedCipherText = "BASE64_ENCODED_STRING";  // Replace with your Base64 encoded string
+
+    // Step 1: Extract the IV (first 16 bytes) from the Base64-encoded string
+    function getIVFromBase64(encodedString) {
+        var binaryString = atob(encodedString);
+        var byteArray = new Uint8Array(binaryString.length);
+        for (var i = 0; i < binaryString.length; i++) {
+            byteArray[i] = binaryString.charCodeAt(i);
+        }
+        return byteArray.slice(0, 16);  // First 16 bytes are the IV
+    }
+
+    var iv = getIVFromBase64(base64EncodedCipherText);
+
+    // Step 2: Decrypt the remaining cipher text (without IV)
+    var cipherText = Buffer.from(base64EncodedCipherText, 'base64').slice(16);  // Slice off the first 16 bytes (IV)
+
+    var crypto = require("crypto");
+    var decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+
+    var decryptedValue = decipher.update(cipherText, 'hex', 'utf8');
+    decryptedValue += decipher.final('utf8');
+
+    Write("Decrypted Value: " + decryptedValue);
+</script>
