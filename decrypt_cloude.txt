@@ -1,0 +1,77 @@
+// AMPscript Implementation
+%%[
+/* Function to convert hex string to binary */
+SET @hexToBin = ""
+SET @encryptedData = AttributeValue("EncryptedField") /* Get from DE */
+SET @key = "YOUR_ENCRYPTION_KEY_HERE"
+
+/* Extract first 16 bytes (32 characters in hex) for IV */
+SET @iv = Substring(@encryptedData, 1, 32)
+SET @actualData = Substring(@encryptedData, 33)
+
+/* Decrypt using IV and Key */
+SET @decryptedValue = DecryptSymmetric(
+    @actualData,
+    "aes",
+    @key,
+    "CBC",
+    @iv,
+    "hex"
+)
+]%%
+
+Decrypted Value: %%=v(@decryptedValue)=%%
+
+/* Server-Side JavaScript Implementation */
+<script runat="server">
+Platform.Load("core", "1.1.1");
+
+function hexToBytes(hex) {
+    var bytes = [];
+    for(var i = 0; i < hex.length; i += 2) {
+        bytes.push(parseInt(hex.substr(i, 2), 16));
+    }
+    return bytes;
+}
+
+function decryptData(encryptedData, key) {
+    try {
+        // Extract IV (first 16 bytes / 32 hex chars)
+        var iv = encryptedData.substring(0, 32);
+        var actualData = encryptedData.substring(32);
+        
+        // Convert hex strings to byte arrays
+        var ivBytes = hexToBytes(iv);
+        var keyBytes = hexToBytes(key);
+        var dataBytes = hexToBytes(actualData);
+        
+        // Create crypto objects
+        var decipher = Crypto.createDecipher("aes-256-cbc", keyBytes, ivBytes);
+        
+        // Decrypt
+        var decrypted = decipher.update(dataBytes);
+        decrypted = decrypted.concat(decipher.final());
+        
+        // Convert to string
+        return Platform.Function.BinaryToString(decrypted);
+    } catch(e) {
+        Write("Decryption Error: " + e.message);
+        return null;
+    }
+}
+
+// Usage Example
+var row = Platform.Function.LookupRows(
+    "YourDataExtensionName",
+    "PrimaryKey",
+    "SomeValue"
+);
+
+if(row && row.length > 0) {
+    var encryptedValue = row[0]["EncryptedColumn"];
+    var key = "YOUR_ENCRYPTION_KEY_HERE";
+    
+    var decryptedValue = decryptData(encryptedValue, key);
+    Write("Decrypted Value: " + decryptedValue);
+}
+</script>
