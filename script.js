@@ -66,3 +66,17 @@ i<script runat="server">
         logErrorToDE(e.message);  // Log the error message to Data Extension
     }
 </script>
+
+Platform.Load("Core", "1");
+
+var key = "your-secret-key";  // Same key used for encryption
+var iv = "your-initialization-vector";  // Same IV used for encryption
+var encryptedValue = "ENCRYPTED_TEXT_HERE";  // Replace with the encrypted string
+
+var crypto = require("crypto");
+var decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+
+var decryptedValue = decipher.update(encryptedValue, 'hex', 'utf8');
+decryptedValue += decipher.final('utf8');
+
+Write("Decrypted Value: " + decryptedValue);
