@@ -87,3 +87,123 @@ try:
 except Exception as e:
     print("Error:", str(e))
 '''
+
+
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import base64
+
+def prepare_key(key):
+    """
+    Convert key to correct format (16 bytes) regardless of input format.
+    
+    Args:
+        key: Can be string, base64 string, or bytes
+        
+    Returns:
+        bytes: 16-byte key
+    """
+    if isinstance(key, str):
+        # If the key is base64 encoded
+        try:
+            key_bytes = base64.b64decode(key)
+        except:
+            # If not base64, encode the raw string to bytes
+            key_bytes = key.encode('utf-8')
+    else:
+        # If already bytes
+        key_bytes = key
+        
+    # If key is longer than 16 bytes, truncate it
+    # If shorter than 16 bytes, pad it with zeros
+    if len(key_bytes) > 16:
+        key_bytes = key_bytes[:16]
+    elif len(key_bytes) < 16:
+        key_bytes = key_bytes + b'\0' * (16 - len(key_bytes))
+        
+    return key_bytes
+
+def extract_iv_and_ciphertext(encrypted_data):
+    """
+    Extract the IV and ciphertext from the encrypted data.
+    
+    Args:
+        encrypted_data (bytes or str): Base64 encoded encrypted data with prepended IV
+        
+    Returns:
+        tuple: (iv, ciphertext) both as bytes
+    """
+    # Decode base64 if input is string
+    if isinstance(encrypted_data, str):
+        encrypted_data = base64.b64decode(encrypted_data)
+    
+    # First 16 bytes are IV
+    iv = encrypted_data[:16]
+    # Rest is ciphertext
+    ciphertext = encrypted_data[16:]
+    
+    return iv, ciphertext
+
+def decrypt(encrypted_data, key):
+    """
+    Decrypt data that was encrypted using Salesforce's encryptManagedIV with AES-128-CBC.
+    
+    Args:
+        encrypted_data (str): Base64 encoded encrypted data with prepended IV
+        key: The encryption key (can be string, base64 string, or bytes)
+        
+    Returns:
+        str: Decrypted text
+    """
+    try:
+        # Prepare the key
+        key_bytes = prepare_key(key)
+        
+        # Extract IV and ciphertext
+        iv, ciphertext = extract_iv_and_ciphertext(encrypted_data)
+        
+        # Create cipher
+        cipher = Cipher(
+            algorithms.AES128(key_bytes),
+            modes.CBC(iv),
+            backend=default_backend()
+        )
+        
+        # Create decryptor
+        decryptor = cipher.decryptor()
+        
+        # Decrypt the data
+        decrypted_padded = decryptor.update(ciphertext) + decryptor.finalize()
+        
+        # Remove PKCS7 padding
+        padding_length = decrypted_padded[-1]
+        decrypted = decrypted_padded[:-padding_length]
+        
+        # Convert to string
+        return decrypted.decode('utf-8')
+        
+    except Exception as e:
+        print(f"Decryption failed: {str(e)}")
+        raise
+
+# Example usage:
+'''
+# Example with different key formats:
+
+# If your key is a regular string
+key1 = "mySecretKey123"  # Will be encoded to bytes and padded/truncated to 16 bytes
+
+# If your key is base64 encoded
+key2 = "bXlTZWNyZXRLZXkxMjM="  # Will be decoded from base64 first
+
+# If your key is already bytes
+key3 = b"mySecretKey123"  # Will be padded/truncated to 16 bytes
+
+try:
+    encrypted_data = "your-base64-encrypted-data"
+    decrypted_text = decrypt(encrypted_data, key1)  # or key2 or key3
+    print("Decrypted:", decrypted_text)
+except Exception as e:
+    print("Error:", str(e))
+'''
