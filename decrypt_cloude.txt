@@ -114,3 +114,52 @@ try {
     console.error('Error:', error);
 }
 */
+
+// Import crypto module if not already available
+// const crypto = require('crypto'); // Uncomment if using Node.js
+
+function extractIVAndCiphertext(encryptedData) {
+    // Convert to Buffer if it's base64 string
+    const buffer = Buffer.from(encryptedData, 'base64');
+    
+    // First 16 bytes are IV
+    const iv = buffer.slice(0, 16);
+    
+    // Rest is ciphertext
+    const ciphertext = buffer.slice(16);
+    
+    return { iv, ciphertext };
+}
+
+function decrypt(encryptedData, key) {
+    try {
+        // Extract IV and ciphertext
+        const { iv, ciphertext } = extractIVAndCiphertext(encryptedData);
+        
+        // Create decipher with AES-128-CBC
+        const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+        
+        // Decrypt
+        let decrypted = decipher.update(ciphertext);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        
+        // Convert to string
+        return decrypted.toString('utf8');
+    } catch (error) {
+        console.error('Decryption failed:', error);
+        throw error;
+    }
+}
+
+// Example usage:
+/*
+const encryptedData = 'your-base64-encrypted-data';
+const key = Buffer.from('your-16-byte-key', 'hex'); // 16 bytes (128 bits) key
+
+try {
+    const decryptedText = decrypt(encryptedData, key);
+    console.log('Decrypted:', decryptedText);
+} catch (error) {
+    console.error('Error:', error);
+}
+*/
