@@ -57,3 +57,28 @@ Decrypted Value: %%=v(@decryptedValue)=%%
 ]%%
 Encoded Value: %%=v(@encoded)=%%  
 Decoded Value: %%=v(@decoded)=%%
+
+
+
+%%[
+   /* Assuming you have the Base64 encoded encrypted string */
+   SET @encryptedValue = "ENCRYPTED_BASE64_STRING_HERE"
+
+   /* Decode the Base64 string */
+   SET @decodedValue = Base64Decode(@encryptedValue)
+
+   /* Extract the first 16 bytes (128 bits) for the IV */
+   SET @iv = Substring(@decodedValue, 1, 16)
+
+   /* The remaining string is the actual cipher text */
+   SET @cipherText = Substring(@decodedValue, 17, Length(@decodedValue) - 16)
+
+   /* Decrypt the value using the key and IV */
+   SET @decryptedValue = DecryptSymmetric(@cipherText, @encryptionKey, @iv)
+
+   IF NOT EMPTY(@decryptedValue) THEN
+     OUTPUT(CONCAT("Decrypted Value: ", @decryptedValue))
+   ELSE
+     OUTPUT("Error: Unable to decrypt")
+   ENDIF
+]%%
