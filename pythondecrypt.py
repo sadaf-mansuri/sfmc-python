@@ -207,3 +207,33 @@ try:
 except Exception as e:
     print("Error:", str(e))
 '''
+
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
+
+# Convert string to bytes for key and IV
+key = "your16or24or32bytekey"  # Key must be 16, 24, or 32 bytes long
+iv = "your16byteIVvector"      # IV must be 16 bytes
+
+# Ensure key and IV are bytes
+key_bytes = key.encode('utf-8')  # Use utf-8 encoding to convert string to bytes
+iv_bytes = iv.encode('utf-8')
+
+# For AES encryption
+cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
+plain_text = "This is some plain text to encrypt"
+cipher_text = cipher.encrypt(pad(plain_text.encode('utf-8'), AES.block_size))
+
+# Encode the cipher text in base64
+encoded_cipher_text = base64.b64encode(cipher_text).decode('utf-8')
+
+print("Encrypted (Base64):", encoded_cipher_text)
+
+# For AES decryption
+cipher_text_bytes = base64.b64decode(encoded_cipher_text.encode('utf-8'))
+decipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
+decrypted_text = unpad(decipher.decrypt(cipher_text_bytes), AES.block_size)
+
+print("Decrypted:", decrypted_text.decode('utf-8'))
