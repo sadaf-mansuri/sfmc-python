@@ -1,0 +1,76 @@
+ I'll help you create a solution to extract the IV and decrypt the data in server-side JavaScript. Since Salesforce's encryptManagedIV prepends the IV to the ciphertext, we'll need to separate them first.
+
+
+
+<antArtifact identifier="decrypt-salesforce" type="application/vnd.ant.code" language="javascript" title="Decrypt Salesforce managed IV encryption">
+// Import crypto module if not already available
+// const crypto = require('crypto'); // Uncomment if using Node.js
+
+function extractIVAndCiphertext(encryptedData) {
+    // Convert to Buffer if it's base64 string
+    const buffer = Buffer.from(encryptedData, 'base64');
+    
+    // First 16 bytes are IV
+    const iv = buffer.slice(0, 16);
+    
+    // Rest is ciphertext
+    const ciphertext = buffer.slice(16);
+    
+    return { iv, ciphertext };
+}
+
+function decrypt(encryptedData, key) {
+    try {
+        // Extract IV and ciphertext
+        const { iv, ciphertext } = extractIVAndCiphertext(encryptedData);
+        
+        // Create decipher
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+        
+        // Decrypt
+        let decrypted = decipher.update(ciphertext);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        
+        // Convert to string
+        return decrypted.toString('utf8');
+    } catch (error) {
+        console.error('Decryption failed:', error);
+        throw error;
+    }
+}
+
+// Example usage:
+/*
+const encryptedData = 'your-base64-encrypted-data';
+const key = Buffer.from('your-32-byte-key', 'hex'); // or however your key is formatted
+
+try {
+    const decryptedText = decrypt(encryptedData, key);
+    console.log('Decrypted:', decryptedText);
+} catch (error) {
+    console.error('Error:', error);
+}
+*/
+</antArtifact>
+
+This code provides a solution for decrypting data that was encrypted using Salesforce's encryptManagedIV. Here's how to use it:
+
+1. The `extractIVAndCiphertext` function separates the first 16 bytes (IV) from the rest of the encrypted data
+2. The `decrypt` function handles the actual decryption using AES-256-CBC (which is what Salesforce uses)
+
+To use this code:
+
+1. Make sure your key is in the correct format (32 bytes for AES-256)
+2. Your encrypted data should be in base64 format
+3. Call the decrypt function with your encrypted data and key
+
+For example:
+```javascript
+const encryptedData = 'your-base64-encrypted-string';
+const key = Buffer.from('your-32-byte-key', 'hex');
+const decryptedText = decrypt(encryptedData, key);
+```
+
+Note that this assumes you're using crypto-compatible JavaScript environment. In Marketing Cloud, you might need to adjust the crypto methods based on what's available in your specific environment.
+
+Would you like me to modify the code to match your specific key format or environment requirements?
