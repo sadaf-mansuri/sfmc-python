@@ -38,3 +38,13 @@ for item in email_templates['items']:
         file.write(html_content)
 
     print(f"Saved template {item['name']} as {file_name}")
+
+
+
+
+import pacparser
+
+pacparser.init()
+pacparser.parse_pac("http://your_getproxy_url/cgi-bin/getproxy")
+
+proxy = pacparser.find_proxy("https:/
