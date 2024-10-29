@@ -47,4 +47,6 @@ import pacparser
 pacparser.init()
 pacparser.parse_pac("http://your_getproxy_url/cgi-bin/getproxy")
 
-proxy = pacparser.find_proxy("https:/
+proxy = pacparser.find_proxy("https://api.example.com")
+print("Proxy to use:", proxy)
+
