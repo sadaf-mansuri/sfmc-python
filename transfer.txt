@@ -1,84 +1,39 @@
-SELECT 
-    s.MobileNumber,
-    s.SubscriberKey,
-    s.MessageText,
-    t.EventDate AS ClickDate,
-    t.URL
-FROM _SMSMessageTracking s
-JOIN _Click t
-ON s.SubscriberKey = t.SubscriberKey
-WHERE t.URL IS NOT NULL
-AND t.EventDate >= DATEADD(day, -30, GETDATE())  -- Last 30 days
+import os
+
+# Get the directory where the script is running
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Define the file path in this directory
+file_path = os.path.join(script_dir, "your_file_name.txt")
+
+# Write to the file
+with open(file_path, "w") as file:
+    file.write("Your content here")
+
+print(f"File saved at: {file_path}")
 
 
-___----
-%%[
-SET @encryptedString = "ENCRYPTED_STRING_HERE"  /* Replace with your encrypted string */
-SET @decryptedString = CacheUtil.DecryptData(@encryptedString)
+import os
+import shutil
 
-IF EMPTY(@decryptedString) THEN
-  SET @decryptedString = "Error decrypting data"
-ENDIF
-]%%
-Decrypted Value: %%=v(@decryptedString)=%%
+# Define source and destination directories
+original_dir = "path/to/original_dir"
+processed_dir = "path/to/processed_dir"
 
+# Ensure the destination directory exists
+os.makedirs(processed_dir, exist_ok=True)
 
-______
-%%[
-   SET @encryptedCustomerID = AttributeValue("encryptedCustomerID")  /* Fetch encrypted string from a data extension or as a parameter */
-   SET @decryptedCustomerID = CacheUtil.DecryptData(@encryptedCustomerID)
-
-   IF NOT EMPTY(@decryptedCustomerID) THEN
-     SET @personalizedMessage = CONCAT("Hello, Customer ID ", @decryptedCustomerID)
-   ELSE
-     SET @personalizedMessage = "Error: Could not decrypt customer ID."
-   ENDIF
-]%%
-%%=v(@personalizedMessage)=%%
-
-
-debug
-
-OUTPUTLINE(CONCAT("Decrypted String: ", @decryptedString))
-
-%%[
-  SET @encryptedValue = "ENCRYPTED_STRING_HERE"  /* Replace with your encrypted string */
-  SET @decryptedValue = CacheUtil.DecryptData(@encryptedValue)
-
-  IF EMPTY(@decryptedValue) THEN
-    SET @decryptedValue = "Error decrypting data"
-  ENDIF
-]%%
-Decrypted Value: %%=v(@decryptedValue)=%%
-
-%%[
-   SET @encoded = Base64Encode('This is a test')
-   SET @decoded = Base64Decode(@encoded)
-]%%
-Encoded Value: %%=v(@encoded)=%%  
-Decoded Value: %%=v(@decoded)=%%
-
-
-
-%%[
-   /* Assuming you have the Base64 encoded encrypted string */
-   SET @encryptedValue = "ENCRYPTED_BASE64_STRING_HERE"
-
-   /* Decode the Base64 string */
-   SET @decodedValue = Base64Decode(@encryptedValue)
-
-   /* Extract the first 16 bytes (128 bits) for the IV */
-   SET @iv = Substring(@decodedValue, 1, 16)
-
-   /* The remaining string is the actual cipher text */
-   SET @cipherText = Substring(@decodedValue, 17, Length(@decodedValue) - 16)
-
-   /* Decrypt the value using the key and IV */
-   SET @decryptedValue = DecryptSymmetric(@cipherText, @encryptionKey, @iv)
-
-   IF NOT EMPTY(@decryptedValue) THEN
-     OUTPUT(CONCAT("Decrypted Value: ", @decryptedValue))
-   ELSE
-     OUTPUT("Error: Unable to decrypt")
-   ENDIF
-]%%
+# Loop through all files in the original directory
+for filename in os.listdir(original_dir):
+    # Construct full file path
+    source_file = os.path.join(original_dir, filename)
+    
+    # Check if it is a file (not a directory)
+    if os.path.isfile(source_file):
+        # Define the new file name (you can customize this)
+        new_filename = f"processed_{filename}"
+        destination_file = os.path.join(processed_dir, new_filename)
+        
+        # Copy the file
+        shutil.copy2(source_file, destination_file)
+        print(f"Copied: {filename} to {new_filename}")
