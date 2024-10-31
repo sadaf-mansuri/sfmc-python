@@ -1,39 +1,33 @@
 import os
+from bs4 import BeautifulSoup
 
-# Get the directory where the script is running
-script_dir = os.path.dirname(os.path.abspath(__file__))
+# Define input and output directories
+incoming_dir = "path/to/incoming"
+output_dir = "path/to/output"
 
-# Define the file path in this directory
-file_path = os.path.join(script_dir, "your_file_name.txt")
+# Ensure the output directory exists
+os.makedirs(output_dir, exist_ok=True)
 
-# Write to the file
-with open(file_path, "w") as file:
-    file.write("Your content here")
-
-print(f"File saved at: {file_path}")
-
-
-import os
-import shutil
-
-# Define source and destination directories
-original_dir = "path/to/original_dir"
-processed_dir = "path/to/processed_dir"
-
-# Ensure the destination directory exists
-os.makedirs(processed_dir, exist_ok=True)
-
-# Loop through all files in the original directory
-for filename in os.listdir(original_dir):
-    # Construct full file path
-    source_file = os.path.join(original_dir, filename)
+# Loop through all files in the incoming directory
+for filename in os.listdir(incoming_dir):
+    # Construct the full file path
+    input_file_path = os.path.join(incoming_dir, filename)
     
     # Check if it is a file (not a directory)
-    if os.path.isfile(source_file):
-        # Define the new file name (you can customize this)
-        new_filename = f"processed_{filename}"
-        destination_file = os.path.join(processed_dir, new_filename)
+    if os.path.isfile(input_file_path):
+        # Read the HTML content
+        with open(input_file_path, "r", encoding="utf-8") as file:
+            html_content = file.read()
         
-        # Copy the file
-        shutil.copy2(source_file, destination_file)
-        print(f"Copied: {filename} to {new_filename}")
+        # Parse and prettify the HTML
+        soup = BeautifulSoup(html_content, "html.parser")
+        pretty_html = soup.prettify()
+        
+        # Define the output file path
+        output_file_path = os.path.join(output_dir, f"processed_{filename}")
+        
+        # Write the prettified HTML to the output file
+        with open(output_file_path, "w", encoding="utf-8") as file:
+            file.write(pretty_html)
+        
+        print(f"Processed and saved: {output_file_path}")
