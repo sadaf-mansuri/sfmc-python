@@ -31,3 +31,43 @@ for filename in os.listdir(incoming_dir):
             file.write(pretty_html)
         
         print(f"Processed and saved: {output_file_path}")
+
+
+import requests
+
+# Set up necessary variables
+access_token = "YOUR_ACCESS_TOKEN"
+subdomain = "YOUR_SUBDOMAIN"  # e.g., "yourinstance"
+definition_key = "YOUR_DEFINITION_KEY"
+contact_key = "CONTACT_KEY_FROM_DATA_EXTENSION"
+subscriber_key = "SUBSCRIBER_KEY_FROM_DATA_EXTENSION"
+
+# Define the API endpoint
+url = f"https://{subdomain}.rest.marketingcloudapis.com/messaging/v1/messageDefinitionSends/key:{definition_key}/send"
+
+# Set up the headers
+headers = {
+    "Authorization": f"Bearer {access_token}",
+    "Content-Type": "application/json"
+}
+
+# Define the payload
+payload = {
+    "To": {
+        "ContactKey": contact_key,
+        "SubscriberKey": subscriber_key,
+        "Attributes": {
+            "FirstName": "John",
+            "LastName": "Doe",
+            "CustomField1": "Value1",
+            "CustomField2": "Value2"
+        }
+    }
+}
+
+# Send the request
+response = requests.post(url, headers=headers, json=payload)
+
+# Print the response
+print(response.status_code)
+print(response.json())
