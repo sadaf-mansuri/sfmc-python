@@ -113,4 +113,13 @@ Write("Decrypted Value: " + decryptedValue);
 </script>
 
 
+var dataExtension = DataExtension.Init("YourDEName");
+var rows = dataExtension.Rows.Retrieve();
+for (var i = 0; i < rows.length; i++) {
+    var encryptedValue = Encrypt(rows[i].YourField, 'encryptionKey');  // Custom function or algorithm
+    dataExtension.Rows.Update({YourEncryptedField: encryptedValue}, ['PrimaryKeyField'], [rows[i].PrimaryKeyField]);
+}
+
+
+
 
