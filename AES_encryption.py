@@ -1,14 +1,14 @@
+import json
+import base64
+import hmac
+import hashlib
+from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
-import base64
-import hashlib
-import os
 
-# Function to generate AES key from the Trustpilot encryption key (if needed)
+# Function to generate AES key from Trustpilot's encryption key (if needed)
 def generate_aes_key(encryption_key):
-    # If Trustpilot provides the encryption key in string form, we can hash it to generate a 256-bit key
-    # Convert the string to bytes before hashing
+    # Hash the encryption key to generate a 256-bit AES key using SHA-256
     return hashlib.sha256(encryption_key.encode()).digest()
 
 # Function to encrypt data using AES (CBC mode)
@@ -33,15 +33,48 @@ def encrypt_data(encryption_key, data):
     # Return the encrypted data along with the IV (Base64 encoded for safe transmission)
     return base64.b64encode(iv + encrypted_data).decode('utf-8')
 
+# Function to sign the encrypted data using HMAC (with SHA-256)
+def sign_data(authentication_key, encrypted_data):
+    # Convert the authentication key to bytes and sign the encrypted data with HMAC
+    hmac_key = authentication_key.encode()
+    return hmac.new(hmac_key, encrypted_data.encode(), hashlib.sha256).hexdigest()
+
+# Function to encrypt and sign the JSON payload
+def encrypt_and_sign_json(encryption_key, authentication_key, payload):
+    # Convert the payload to JSON string
+    payload_json = json.dumps(payload)
+
+    # Encrypt the payload using AES
+    encrypted_payload = encrypt_data(encryption_key, payload_json)
+
+    # Sign the encrypted payload using HMAC
+    signature = sign_data(authentication_key, encrypted_payload)
+
+    # Combine encrypted payload and signature into one string
+    result = {
+        "data": encrypted_payload,
+        "signature": signature
+    }
+
+    # Base64 encode the final result
+    final_result = base64.b64encode(json.dumps(result).encode()).decode('utf-8')
+
+    return final_result
+
 # Example usage
 if __name__ == "__main__":
-    # Replace with the encryption key provided by Trustpilot
-    trustpilot_encryption_key = "e204d/g4xJIS8...."  # Example encryption key
+    # Replace with your actual Trustpilot encryption and authentication keys
+    encryption_key = "your_encryption_key_here"
+    authentication_key = "your_authentication_key_here"
 
-    # The data to encrypt
-    data = "This is a secret message for Trustpilot."
+    # Example JSON payload to encrypt and sign
+    payload = {
+        "email": "user@example.com",
+        "name": "John Doe",
+        "ref": "abcd1234"
+    }
 
-    # Encrypt the data
-    encrypted_data = encrypt_data(trustpilot_encryption_key, data)
+    # Encrypt and sign the JSON payload
+    encrypted_signed_payload = encrypt_and_sign_json(encryption_key, authentication_key, payload)
 
-    print(f"Encrypted Data: {encrypted_data}")
+    print(f"Encrypted and Signed Payload (Base64): {encrypted_signed_payload}")
