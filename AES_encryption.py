@@ -5,15 +5,16 @@ import base64
 import hashlib
 import os
 
-# Function to generate AES key from API key (using SHA-256 hash)
-def generate_aes_key(api_key):
-    # Hash the API key to generate a 32-byte AES key (for AES-256)
-    return hashlib.sha256(api_key.encode()).digest()
+# Function to generate AES key from the Trustpilot encryption key (if needed)
+def generate_aes_key(encryption_key):
+    # If Trustpilot provides the encryption key in string form, we can hash it to generate a 256-bit key
+    # Convert the string to bytes before hashing
+    return hashlib.sha256(encryption_key.encode()).digest()
 
 # Function to encrypt data using AES (CBC mode)
-def encrypt_data(api_key, data):
-    # Generate a 256-bit AES key from the API key
-    aes_key = generate_aes_key(api_key)
+def encrypt_data(encryption_key, data):
+    # Generate AES key from the provided Trustpilot encryption key
+    aes_key = generate_aes_key(encryption_key)
 
     # Generate a random 16-byte IV for AES (this should be unique for every encryption)
     iv = os.urandom(16)
@@ -34,10 +35,13 @@ def encrypt_data(api_key, data):
 
 # Example usage
 if __name__ == "__main__":
-    api_key = "your_api_key_here"  # Replace with your actual API key
-    data = "This is a secret message."
+    # Replace with the encryption key provided by Trustpilot
+    trustpilot_encryption_key = "e204d/g4xJIS8...."  # Example encryption key
+
+    # The data to encrypt
+    data = "This is a secret message for Trustpilot."
 
     # Encrypt the data
-    encrypted_data = encrypt_data(api_key, data)
+    encrypted_data = encrypt_data(trustpilot_encryption_key, data)
 
     print(f"Encrypted Data: {encrypted_data}")
