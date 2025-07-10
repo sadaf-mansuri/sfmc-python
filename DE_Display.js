@@ -22,6 +22,20 @@ for (var i = 0; i < deRows.length; i++) {
 htmlTable += "</table>";
 </script>
 
+     <script runat="server">
+      Platform.Load("Core", "1.1");
+
+      var rows = DataExtension.Init("campaign_name_categories").Rows.Retrieve();
+
+      for (var i = 0; i < rows.length; i++) {
+        Write("<tr>");
+        Write("<td>" + rows[i]["CampaignName"] + "</td>");
+        Write("<td>" + rows[i]["Order"] + "</td>");
+        Write("<td>" + rows[i]["Type"] + "</td>");
+        Write("</tr>");
+      }
+    </script>
+
 <!-- Output the table to the page -->
 <html>
   <head>
