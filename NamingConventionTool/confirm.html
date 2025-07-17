@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Naming Convention - Success!</title>
+</head>
+  
+<body>
+  <table cellpadding=40>
+    <tr>
+      <td><img src="https://attraxcdnprod1-freshed3dgayb7c3.z01.azurefd.net/1481177/18850739-a88d-4c53-a50e-67fa34f65497/0.0.0/Blob/images/logos/rentokil-terminix.png" width="100" height="50">
+    </td>
+      <td>
+        <h1>Email Naming Convention</h1>
+      </td>
+    </tr>
+  </table>
+
+    <h2>You have successfully generated an email name to use in SFMC!</h2><br><br>
+    Your generated Email Name is:<br>
+    <div id="textToCopy">
+      <h3 id="emailName"></h3>
+    </div><br>
+  <button id="copy-button" onclick="copyText()">Copy Email Name</button>
+      
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailName = urlParams.get("emailname");
+    const emailNameElement = document.getElementById("emailName");
+    const copyButton = document.getElementById("copy-button");
+
+    if (emailName) {
+      emailNameElement.textContent = emailName;
+    } else {
+      emailNameElement.textContent = "Not provided";
+    }
+
+    copyButton.addEventListener("click", function () {
+      const textToCopy = emailNameElement.textContent;
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        copyButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyButton.textContent = "Copy Email Name";
+        }, 4000);
+      }).catch(err => {
+        console.error("Failed to copy text: ", err);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
