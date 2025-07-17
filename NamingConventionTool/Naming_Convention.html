@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Naming Convention</title>
+    <script type="text/javascript">
+    function blockSpecialChar(e){
+        var k;
+        document.all ? k = e.keyCode : k = e.which;
+        return ((k > 64 && k < 91) || (k > 96 && k < 123) || k == 8 || k == 32 || (k >= 48 && k <= 57));
+        }
+    </script>
+</head>
+<body>
+  <table cellpadding=5 border=0>
+    <tr>
+      <td><img src="https://attraxcdnprod1-freshed3dgayb7c3.z01.azurefd.net/1481177/18850739-a88d-4c53-a50e-67fa34f65497/0.0.0/Blob/images/logos/rentokil-terminix.png" width="100" height="40">
+    </td>
+      <td>
+        <h1>Email Naming Convention</h1><p>
+        <font color = "red"><i>*** All fields are required ***</i></font>
+      </td>
+    </tr>
+  </table>
+<br>
+    
+    <form action="%%=v(@confirmParam)=%%" method="post">
+        <label>Brand*:</label><br>
+        <select id="brand" name="brandDesc" required>
+               <option value=""></option>
+            %%[
+            SET @brands = LookupOrderedRows("emailMetadataLOV", 0, "Position ASC", "Category", "Brand", "Status", "Active")
+            FOR @i = 1 TO RowCount(@brands) DO
+                SET @row = Row(@brands, @i)
+                SET @desc = Field(@row, "Name")
+            ]%%
+                <option value="%%=v(@desc)=%%">%%=v(@desc)=%%</option>
+            %%[NEXT @i]%%
+        </select><br><br>
+
+        <label>Line of Business*:</label><br>
+        <select id="lob" name="lobDesc" required>
+               <option value=""></option>
+            %%[
+            SET @lob = LookupOrderedRows("emailMetadataLOV", 0, "Position ASC", "Category", "Line of Business", "Status", "Active")
+            FOR @i = 1 TO RowCount(@lob) DO
+                SET @row = Row(@lob, @i)
+                SET @desc = Field(@row, "Name")
+            ]%%
+                <option value="%%=v(@desc)=%%">%%=v(@desc)=%%</option>
+            %%[NEXT @i]%%
+        </select><br><br>
+
+        <label>Audience*:</label><br>
+        <select id="audience" name="audienceDesc" required>
+               <option value=""></option>
+            %%[
+            SET @audiences = LookupOrderedRows("emailMetadataLOV", 0, "Position ASC", "Category", "Audience", "Status", "Active")
+            FOR @i = 1 TO RowCount(@audiences) DO
+                SET @row = Row(@audiences, @i)
+                SET @desc = Field(@row, "Name")
+            ]%%
+                <option value="%%=v(@desc)=%%">%%=v(@desc)=%%</option>
+            %%[NEXT @i]%%
+        </select><br><br>
+
+        <label>Goal*:</label><br>
+        <select id="goal" name="goalDesc" required>
+               <option value=""></option>
+            %%[
+            SET @goals = LookupOrderedRows("emailMetadataLOV", 0, "Position ASC", "Category", "Goal", "Status", "Active")
+            FOR @i = 1 TO RowCount(@goals) DO
+                SET @row = Row(@goals, @i)
+                SET @desc = Field(@row, "Name")
+            ]%%
+                <option value="%%=v(@desc)=%%">%%=v(@desc)=%%</option>
+            %%[NEXT @i]%%
+        </select><br><br>
+
+        <label>Recurring*:</label><br>
+        <select id="recurring" name="recurringBool" required>
+               <option value=""></option>
+               <option value=0>No</option>
+               <option value=1>Yes</option>
+        </select><br><br>
+
+        <label>Email Name*:</label><br>
+        <input type="text" name="emailNameOrig" required onkeypress="return blockSpecialChar(event)"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+%%[
+    RequestMethod == "POST" THEN
+        SET @emailNameOrig = RequestParameter("emailNameOrig")
+        SET @emailNameUpd = Replace(@emailNameOrig, " ", "_")
+        SET @brandDesc = RequestParameter("brandDesc")
+        SET @lobDesc = RequestParameter("lobDesc")
+        SET @audienceDesc = RequestParameter("audienceDesc")
+        SET @goalDesc = RequestParameter("goalDesc")
+        SET @recurringBool = RequestParameter("recurringBool")
+        SET @accountId = AuthenticatedMemberID()
+        SET @guidId = GUID()
+        SET @timestamp = NOW()
+
+        /* Lookup Codes */
+        SET @brandCode = Lookup("emailMetadataLOV", "Code", "Name", @brandDesc)
+        SET @lobCode = Lookup("emailMetadataLOV", "Code", "Name", @lobDesc)
+        SET @audienceCode = Lookup("emailMetadataLOV", "Code", "Name", @audienceDesc)
+        SET @goalCode = Lookup("emailMetadataLOV", "Code", "Name", @goalDesc)
+        
+        /* Display Naming Convention */
+        IF NOT EMPTY(@emailNameOrig) AND NOT EMPTY(@brandDesc) AND NOT EMPTY(@lobDesc) AND NOT EMPTY(@audienceDesc) AND NOT EMPTY(@goalDesc) AND @recurringBool == 1 THEN
+          SET @emailNameConcat = Concat("SFMC_", @brandCode, "_", @lobCode, "_", @audienceCode, "_", @goalCode, "_", @EmailNameUpd, "_9999_99")
+          SET @confirmParam = Concat("https://cloud.emailmarketing-na.rentokil.com/confirm?emailname=", @emailNameConcat)
+          
+                  /* Insert into emailmetadata */
+        InsertDE("emailMetadata",
+            "EmailNameOrig", @emailNameOrig,
+            "Brand", @brandDesc,
+            "LineOfBusiness", @lobDesc,
+            "Audience", @audienceDesc,
+            "Goal", @goalDesc,
+            "EmailNameUpd", @emailNameUpd,
+            "EmailNameConcat", @emailNameConcat,
+            "Recurring", @recurringBool,
+            "Source", "SFMC",
+            "AccountId", @accountId,
+            "Id", @guidId,
+            "CreateDate", @timestamp,
+            "UpdateDate", @timestamp
+           )
+          
+          Redirect(@confirmParam)
+          
+        ELSEIF NOT EMPTY(@emailNameOrig) AND NOT EMPTY(@brandDesc) AND NOT EMPTY(@lobDesc) AND NOT EMPTY(@audienceDesc) AND NOT EMPTY(@goalDesc) AND @recurringBool == 0 THEN
+          SET @emailNameConcat = Concat("SFMC_", @brandCode, "_", @lobCode, "_", @audienceCode, "_", @goalCode, "_", @EmailNameUpd)
+          SET @confirmParam = Concat("https://cloud.emailmarketing-na.rentokil.com/confirm?emailname=", @emailNameConcat)
+          
+                  /* Insert into emailmetadata */
+        InsertDE("emailMetadata",
+            "EmailNameOrig", @emailNameOrig,
+            "Brand", @brandDesc,
+            "LineOfBusiness", @lobDesc,
+            "Audience", @audienceDesc,
+            "Goal", @goalDesc,
+            "EmailNameUpd", @emailNameUpd,
+            "EmailNameConcat", @emailNameConcat,
+            "Recurring", @recurringBool,
+            "Source", "SFMC",
+            "AccountId", @accountId,
+            "Id", @guidId,
+            "CreateDate", @timestamp,
+            "UpdateDate", @timestamp
+        )
+          
+          Redirect(@confirmParam)
+        ENDIF
+
+]%%
+  
+</body>
+</html>
